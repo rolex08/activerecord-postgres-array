@@ -15,7 +15,8 @@ module ActiveRecord
           if include_readonly_attributes || !self.class.readonly_attributes.include?(name)
             value = read_attribute(name)
             if column.type.to_s =~ /_array$/ && value && value.is_a?(Array)
-              value = value.to_postgres_array(new_record?)
+              use_prepared_statements = self.class.connection_config.fetch(:prepared_statements, true)
+              value = value.to_postgres_array(new_record? && use_prepared_statements)
             elsif defined?(::Hstore) && column.type == :hstore && value && value.is_a?(Hash)
               value = value.to_hstore
             elsif !value.nil? && coder = klass.serialized_attributes[name]
